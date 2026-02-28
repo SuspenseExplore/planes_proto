@@ -1,6 +1,6 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from			'three';
+import { GLTFLoader } from		'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 	'three/addons/controls/OrbitControls.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -25,7 +25,7 @@ scene.add(new THREE.AmbientLight(0xffffff, 5));
 }
 
 const loader = new GLTFLoader();
-let model = await loader.loadAsync('models/nature_kit/cliff_block_stone.glb');
+let model = await loader.loadAsync('../models/nature_kit/cliff_block_stone.glb');
 for (var x = -10; x < 10; x++)
 {
 	for (var y = -10; y < 10; y++)

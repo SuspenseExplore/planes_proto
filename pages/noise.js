@@ -35,9 +35,12 @@ var mapCfg = {
 const loader = new GLTFLoader();
 let model = await loader.loadAsync('../models/nature_kit/cliff_block_stone.glb');
 var meshes = model.scene.children[0].children;
-var instMeshes = INST.build(meshes, MAX_MAP_SIZE * MAX_MAP_SIZE);
-instMeshes.forEach(function (el) {
-	scene.add(el);
+var instMeshes = [INST.build(meshes, MAX_MAP_SIZE * MAX_MAP_SIZE)];
+instMeshes[1] = INST.build(meshes, MAX_MAP_SIZE * MAX_MAP_SIZE);
+instMeshes.forEach(function (meshes) {
+	meshes.forEach(function (el) {
+		scene.add(el);
+	});
 });
 
 var noise1 = new SimplexNoise();
@@ -59,8 +62,10 @@ for (var x = 0; x < mapCfg.size; x++) {
 		dummy.position.set(x * mapCfg.tileSize, y * mapCfg.tileSize, heightMap[x][y]);
 		dummy.scale.set(mapCfg.tileSize, mapCfg.tileSize, mapCfg.tileSize);
 		dummy.updateMatrix();
-		instMeshes.forEach(function (el) {
-			el.setMatrixAt(y * mapCfg.size + x, dummy.matrix);
+		instMeshes.forEach(function (meshes) {
+			meshes.forEach(function (el) {
+				el.setMatrixAt(y * mapCfg.size + x, dummy.matrix);
+			});
 		});
 	}
 }
@@ -83,21 +88,25 @@ gui.add(mapCfg, 'amplitude2', -ampLimit, ampLimit);
 // mapCfg.update();
 
 function animate(time) {
-	for (var x = 0; x < mapCfg.size; x++) {
-		for (var y = 0; y < mapCfg.size; y++) {
-			let h1 = noise1.noise(x * mapCfg.frequency1, y * mapCfg.frequency1) * mapCfg.amplitude1;
-			let h2 = noise1.noise(x * mapCfg.frequency2, y * mapCfg.frequency2) * mapCfg.amplitude2;
-			dummy.position.set(x * mapCfg.tileSize, y * mapCfg.tileSize, h1 + h2);
-			dummy.scale.set(mapCfg.tileSize, mapCfg.tileSize, mapCfg.tileSize);
-			dummy.updateMatrix();
-			instMeshes.forEach(function (el) {
-				el.setMatrixAt(y * mapCfg.size + x, dummy.matrix);
-			});
+	for (var m = 0; m < instMeshes.length; m++) {
+		for (var x = 0; x < mapCfg.size; x++) {
+			for (var y = 0; y < mapCfg.size; y++) {
+				let h1 = noise1.noise((x + m * mapCfg.size) * mapCfg.frequency1, y * mapCfg.frequency1) * mapCfg.amplitude1;
+				let h2 = noise1.noise((x + m * mapCfg.size) * mapCfg.frequency2, y * mapCfg.frequency2) * mapCfg.amplitude2;
+				dummy.position.set((x + m * mapCfg.size) * mapCfg.tileSize, y * mapCfg.tileSize, h1 + h2);
+				dummy.scale.set(mapCfg.tileSize, mapCfg.tileSize, mapCfg.tileSize);
+				dummy.updateMatrix();
+				instMeshes[m].forEach(function (el) {
+					el.setMatrixAt(y * mapCfg.size + x, dummy.matrix);
+				});
+			}
 		}
 	}
-	instMeshes.forEach(function (el) {
-		el.instanceMatrix.needsUpdate = true;
-		el.count = mapCfg.size * mapCfg.size;
+	instMeshes.forEach(function (meshes) {
+		meshes.forEach(function (el) {
+			el.instanceMatrix.needsUpdate = true;
+			el.count = mapCfg.size * mapCfg.size;
+		});
 	});
 
 	controls.target.set(mapCfg.size * mapCfg.tileSize / 2, mapCfg.size * mapCfg.tileSize / 2, 0);

@@ -26,7 +26,7 @@ let i = 0;
 for (let x = -1; x < 2; x++) {
 	for (let y = -1; y < 2; y++) {
 		chunks[i] = TILEMAP.buildChunk([x, y]);
-		chunks[i].update();
+		chunks[i].update(chunks[i]);
 		i++;
 	}
 }
@@ -47,37 +47,39 @@ const ampLimit = 30;
 const gui = new lil.GUI({ width: 600 });
 gui.add(TILEMAP.mapCfg, 'chunkSize', 1, TILEMAP.MAX_CHUNK_SIZE, 1).onChange(value => {
 	chunks.forEach(function (chunk) {
-		chunk.update();
+		chunk.update(chunk);
 	});
 });
 gui.add(TILEMAP.mapCfg, 'tileSize', 0.1, 10).onChange(value => {
 	chunks.forEach(function (chunk) {
-		chunk.update();
+		chunk.update(chunk);
 	});
 });
-gui.add(TILEMAP.mapCfg, 'frequency1', -frqLimit, frqLimit).onChange(value => {
+let o1 = gui.addFolder('Octave 1');
+o1.add(TILEMAP.mapCfg.octaves[0], 'frq', -frqLimit, frqLimit).onChange(value => {
 	chunks.forEach(function (chunk) {
-		chunk.update();
+		chunk.update(chunk);
 	});
 });
-gui.add(TILEMAP.mapCfg, 'amplitude1', -ampLimit, ampLimit).onChange(value => {
+o1.add(TILEMAP.mapCfg.octaves[0], 'amp', -ampLimit, ampLimit).onChange(value => {
 	chunks.forEach(function (chunk) {
-		chunk.update();
+		chunk.update(chunk);
 	});
 });
-gui.add(TILEMAP.mapCfg, 'frequency2', -frqLimit, frqLimit).onChange(value => {
+let o2 = gui.addFolder('Octave 2');
+o2.add(TILEMAP.mapCfg.octaves[1], 'frq', -frqLimit, frqLimit).onChange(value => {
 	chunks.forEach(function (chunk) {
-		chunk.update();
+		chunk.update(chunk);
 	});
 });
-gui.add(TILEMAP.mapCfg, 'amplitude2', -ampLimit, ampLimit).onChange(value => {
+o2.add(TILEMAP.mapCfg.octaves[1], 'amp', -ampLimit, ampLimit).onChange(value => {
 	chunks.forEach(function (chunk) {
-		chunk.update();
+		chunk.update(chunk);
 	});
 });
 gui.add(TILEMAP.mapCfg, 'z', -1, 1).onChange(value => {
 	chunks.forEach(function (chunk) {
-		chunk.update();
+		chunk.update(chunk);
 	});
 });
 

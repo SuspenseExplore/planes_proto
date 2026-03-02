@@ -1,36 +1,29 @@
 import * as THREE from 'three';
 import * as INST from './instancer'
 import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
-import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
+// import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 
 const BOX_GEOM = new THREE.BoxGeometry(1, 1, 1);
 const MATERIAL = new THREE.MeshPhongMaterial({ color: 0x4faf4f });
 const MESH = new THREE.Mesh(BOX_GEOM, MATERIAL);
 const DUMMY = new THREE.Object3D(); // use this to build the tx matrix for each instance
 const NOISE = new SimplexNoise();
-const IMP_NOISE = new ImprovedNoise();
+// const IMP_NOISE = new ImprovedNoise();
+
+const worker = new Worker('../src/noise_worker.js', { type: 'module' });
 
 export const MAX_CHUNK_SIZE = 600;
 export var mapCfg = {
 	chunkSize: 200,
 	tileSize: 10,
-	frequency1: 0.005,
-	amplitude1: 20,
-	frequency2: 0.02,
-	amplitude2: 1.84,
+	octaves: [
+		{ frq: 0.005, amp: 20 },
+		{ frq: 0.02, amp: 1.84 }
+	],
 	z: 0
 };
 
-function getNoise(x, y, octave) {
-	let c = -0.1;
-	if (octave == 1) {
-		let a = mapCfg.amplitude1 * mapCfg.tileSize;
-		return IMP_NOISE.noise(x * mapCfg.frequency1, y * mapCfg.frequency1, mapCfg.z) * a;
-	} else if (octave == 2) {
-		let a = mapCfg.amplitude2 * mapCfg.tileSize;
-		return IMP_NOISE.noise(x * mapCfg.frequency2, y * mapCfg.frequency2, mapCfg.z) * a;
-	}
-}
+let loadedChunks = {};
 
 /**
  * 
@@ -47,32 +40,40 @@ export function buildChunk(coord) {
 		mesh.frustumCulled = false;
 	});
 
-	let updateFn = function () {
+	let self = {
+		coord: coord,
+		meshes: meshes
+	}
+
+	self.update = (chunk) => {
 		let chunkX = coord[0] * mapCfg.chunkSize;
 		let chunkY = coord[1] * mapCfg.chunkSize;
-
-		for (var x = 0; x < mapCfg.chunkSize; x++) {
-			for (var y = 0; y < mapCfg.chunkSize; y++) {
-				let h1 = getNoise(x + chunkX, y + chunkY, 1);
-				let h2 = getNoise(x + chunkX, y + chunkY, 2);
-				DUMMY.position.set(x * mapCfg.tileSize, y * mapCfg.tileSize, h1 + h2);
-				DUMMY.scale.set(mapCfg.tileSize, mapCfg.tileSize, mapCfg.tileSize);
-				DUMMY.updateMatrix();
-				meshes.forEach(function (el) {
-					el.setMatrixAt(y * mapCfg.chunkSize + x, DUMMY.matrix);
-				});
-			}
-		}
-		meshes.forEach(function (el) {
-			el.position.set(chunkX * mapCfg.tileSize, chunkY * mapCfg.tileSize, 0);
-			el.instanceMatrix.needsUpdate = true;
-			el.count = mapCfg.chunkSize * mapCfg.chunkSize;
+		worker.postMessage({
+			id: chunk.meshes[0].uuid,
+			chunkCoord: [chunkX, chunkY],
+			cfg: mapCfg
 		});
-	};
 
-	return {
-		coord: coord,
-		meshes: meshes,
-		update: updateFn
-	};
+		worker.onmessage = (e) => {
+			let c = loadedChunks[e.data.id];
+			for (var x = 0; x < mapCfg.chunkSize; x++) {
+				for (var y = 0; y < mapCfg.chunkSize; y++) {
+					DUMMY.position.set(x * mapCfg.tileSize, y * mapCfg.tileSize, e.data.map[x][y]);
+					DUMMY.scale.set(mapCfg.tileSize, mapCfg.tileSize, mapCfg.tileSize);
+					DUMMY.updateMatrix();
+					c.meshes.forEach(function (el) {
+						el.setMatrixAt(y * mapCfg.chunkSize + x, DUMMY.matrix);
+					});
+				}
+			}
+			c.meshes.forEach(function (el) {
+				el.position.set(c.coord[0] * mapCfg.chunkSize * mapCfg.tileSize, c.coord[1] * mapCfg.chunkSize * mapCfg.tileSize, 0);
+				el.instanceMatrix.needsUpdate = true;
+				el.count = mapCfg.chunkSize * mapCfg.chunkSize;
+			});
+		};
+	}
+
+	loadedChunks[meshes[0].uuid] = self;
+	return self;
 }

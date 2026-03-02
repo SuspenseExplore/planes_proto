@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import * as INST from './instancer'
 import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
+import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 
 const BOX_GEOM = new THREE.BoxGeometry(1, 1, 1);
 const MATERIAL = new THREE.MeshPhongMaterial({ color: 0x4faf4f });
 const MESH = new THREE.Mesh(BOX_GEOM, MATERIAL);
 const DUMMY = new THREE.Object3D(); // use this to build the tx matrix for each instance
 const NOISE = new SimplexNoise();
+const IMP_NOISE = new ImprovedNoise();
 
 export const MAX_CHUNK_SIZE = 600;
 export var mapCfg = {
@@ -15,17 +17,18 @@ export var mapCfg = {
 	frequency1: 0.005,
 	amplitude1: 20,
 	frequency2: 0.02,
-	amplitude2: 1.84
+	amplitude2: 1.84,
+	z: 0
 };
 
 function getNoise(x, y, octave) {
 	let c = -0.1;
 	if (octave == 1) {
 		let a = mapCfg.amplitude1 * mapCfg.tileSize;
-		return NOISE.noise(x * mapCfg.frequency1, y * mapCfg.frequency1) * a;
+		return IMP_NOISE.noise(x * mapCfg.frequency1, y * mapCfg.frequency1, mapCfg.z) * a;
 	} else if (octave == 2) {
 		let a = mapCfg.amplitude2 * mapCfg.tileSize;
-		return NOISE.noise(x * mapCfg.frequency2, y * mapCfg.frequency2) * a;
+		return IMP_NOISE.noise(x * mapCfg.frequency2, y * mapCfg.frequency2, mapCfg.z) * a;
 	}
 }
 

@@ -43,7 +43,7 @@ controls.target.set(TILEMAP.mapCfg.chunkSize * TILEMAP.mapCfg.tileSize / 2, TILE
 controls.update();
 
 const frqLimit = 0.1;
-const ampLimit = 20;
+const ampLimit = 30;
 const gui = new lil.GUI({ width: 600 });
 gui.add(TILEMAP.mapCfg, 'chunkSize', 1, TILEMAP.MAX_CHUNK_SIZE, 1).onChange(value => {
 	chunks.forEach(function (chunk) {
@@ -71,6 +71,11 @@ gui.add(TILEMAP.mapCfg, 'frequency2', -frqLimit, frqLimit).onChange(value => {
 	});
 });
 gui.add(TILEMAP.mapCfg, 'amplitude2', -ampLimit, ampLimit).onChange(value => {
+	chunks.forEach(function (chunk) {
+		chunk.update();
+	});
+});
+gui.add(TILEMAP.mapCfg, 'z', -1, 1).onChange(value => {
 	chunks.forEach(function (chunk) {
 		chunk.update();
 	});

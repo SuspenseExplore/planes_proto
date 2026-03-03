@@ -36,8 +36,9 @@ const texture = new THREE.DataTexture(heights, CHUNK_SEGS, CHUNK_SEGS, THREE.Red
 
 let mapParms = {
 	octaves: [
-		{ frq: 0.01, amp: 200 },
-		{ frq: 0.02, amp: 100 }
+		{ frq: 0.01, amp: 200, z: 0 },
+		{ frq: 0.02, amp: 100, z: 0 },
+		{ frq: 0.04, amp: 50, z: 0 }
 	]
 }
 const material = new THREE.ShaderMaterial({
@@ -51,20 +52,19 @@ const material = new THREE.ShaderMaterial({
 const mesh = new THREE.Mesh(geom, material);
 scene.add(mesh);
 const gui = new lil.GUI({ width: 600 });
-const o1 = gui.addFolder('Octave 1');
-o1.add(mapParms.octaves[0], 'frq', 0.01, 0.2).onChange(value => {
-	updateMap();
-});
-o1.add(mapParms.octaves[0], 'amp', -500, 500).onChange(value => {
-	updateMap();
-});
-const o2 = gui.addFolder('Octave 2');
-o2.add(mapParms.octaves[1], 'frq', 0.01, 0.2).onChange(value => {
-	updateMap();
-});
-o2.add(mapParms.octaves[1], 'amp', -500, 500).onChange(value => {
-	updateMap();
-});
+for (let o = 0; o < mapParms.octaves.length; o++) {
+	let octave = mapParms.octaves[o];
+	let folder = gui.addFolder('Octave ' + o);
+	folder.add(octave, 'frq', 0.01, 0.2).onChange(value => {
+		updateMap();
+	});
+	folder.add(octave, 'amp', -500, 500).onChange(value => {
+		updateMap();
+	});
+	folder.add(octave, 'z', -5, 5, 0.01).onChange(value => {
+		updateMap();
+	});
+}
 
 function updateMap() {
 	let low = 100000;
@@ -74,7 +74,7 @@ function updateMap() {
 			let n = 0;
 			for (let o = 0; o < mapParms.octaves.length; o++) {
 				let octave = mapParms.octaves[o];
-				n += noise.noise(x * octave.frq, y * octave.frq, 0) * octave.amp;
+				n += noise.noise(x * octave.frq, y * octave.frq, octave.z) * octave.amp;
 			}
 			heights[(y * CHUNK_SEGS + x)] = n;
 			if (n < low) {

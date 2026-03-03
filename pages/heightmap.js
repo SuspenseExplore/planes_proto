@@ -21,33 +21,77 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.1));
 }
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.object.position.set(-10, -10, 200);
+controls.object.position.set(-10, -10, 2000);
 controls.target.set(0, 0, 0);
 controls.update();
 
-const CHUNK_SIZE = 500;
-const CHUNK_SEGS = 512;
+const CHUNK_SIZE = 5000;
+const CHUNK_SEGS = 128;
 const noise = new ImprovedNoise();
 const geom = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SEGS - 1, CHUNK_SEGS - 1);
 const verts = geom.attributes.position.array;
 
-const heights = new Float16Array(CHUNK_SEGS * CHUNK_SEGS);
-const frq = 0.02;
-const amp = 30;
-for (let x = 0; x < CHUNK_SEGS; x++) {
-	for (let y = 0; y < CHUNK_SEGS; y++) {
-		let n = noise.noise(x * frq, y * frq, 0) + 1;
-		heights[(y * CHUNK_SEGS + x)] = n * amp;
-	}
-}
-for (let i = 0, j = 0, l = verts.length; i < l; i++, j += 3) {
-	verts[j + 2] = heights[i];
-}
-geom.computeVertexNormals();
+const heights = new Float32Array(CHUNK_SEGS * CHUNK_SEGS);
+const texture = new THREE.DataTexture(heights, CHUNK_SEGS, CHUNK_SEGS, THREE.RedFormat, THREE.FloatType);
 
-const material = new THREE.MeshPhongMaterial({ color: 0x4faf4f });
+let mapParms = {
+	octaves: [
+		{ frq: 0.01, amp: 200 },
+		{ frq: 0.02, amp: 100 }
+	]
+}
+const material = new THREE.ShaderMaterial({
+	vertexShader: document.getElementById('vertexShader').textContent,
+	fragmentShader: document.getElementById('fragmentShader').textContent,
+	uniforms: {
+		'tex': { value: texture },
+		'amplitude': { value: mapParms.amp }
+	}
+});
 const mesh = new THREE.Mesh(geom, material);
 scene.add(mesh);
+const gui = new lil.GUI({ width: 600 });
+const o1 = gui.addFolder('Octave 1');
+o1.add(mapParms.octaves[0], 'frq', 0.01, 0.2).onChange(value => {
+	updateMap();
+});
+o1.add(mapParms.octaves[0], 'amp', -500, 500).onChange(value => {
+	updateMap();
+});
+const o2 = gui.addFolder('Octave 2');
+o2.add(mapParms.octaves[1], 'frq', 0.01, 0.2).onChange(value => {
+	updateMap();
+});
+o2.add(mapParms.octaves[1], 'amp', -500, 500).onChange(value => {
+	updateMap();
+});
+
+function updateMap() {
+	let low = 100000;
+	let high = -100000;
+	for (let x = 0; x < CHUNK_SEGS; x++) {
+		for (let y = 0; y < CHUNK_SEGS; y++) {
+			let n = 0;
+			for (let o = 0; o < mapParms.octaves.length; o++) {
+				let octave = mapParms.octaves[o];
+				n += noise.noise(x * octave.frq, y * octave.frq, 0) * octave.amp;
+			}
+			heights[(y * CHUNK_SEGS + x)] = n;
+			if (n < low) {
+				low = n;
+			}
+			if (n > high) {
+				high = n;
+			}
+		}
+	}
+	let spread = high - low;
+	for (let i = 0; i < heights.length; i++) {
+		heights[i] = (heights[i] - low) / spread;
+	}
+	material.uniforms.tex.value.needsUpdate = true;
+}
+updateMap();
 
 function animate(time) {
 

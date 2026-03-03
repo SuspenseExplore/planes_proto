@@ -18,6 +18,29 @@
 			}
 		}
 	</script>
+	<script type="x-shader/x-vertex" id="vertexShader">
+		uniform sampler2D tex;
+
+		varying float vColor;
+		varying vec2 vTexCoord;
+		
+		void main() {
+			float h = texture2D(tex, uv).r;
+			vec4 p = vec4(position.xy, h * 512.0, 1.0);
+
+			gl_Position = projectionMatrix * modelViewMatrix * p;
+			vColor = h;
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentShader">
+		varying float vColor;
+		varying vec2 vTexCoord;
+		
+		void main() {
+			gl_FragColor = vec4(vColor, vColor, vColor, 1.0);
+		}
+	</script>
 </head>
 
 <body>

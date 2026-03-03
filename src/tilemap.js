@@ -10,8 +10,6 @@ const DUMMY = new THREE.Object3D(); // use this to build the tx matrix for each 
 const NOISE = new SimplexNoise();
 // const IMP_NOISE = new ImprovedNoise();
 
-const worker = new Worker('../src/noise_worker.js', { type: 'module' });
-
 export const MAX_CHUNK_SIZE = 600;
 export var mapCfg = {
 	chunkSize: 200,
@@ -42,19 +40,20 @@ export function buildChunk(coord) {
 
 	let self = {
 		coord: coord,
-		meshes: meshes
+		meshes: meshes,
+		worker: new Worker('../src/noise_worker.js', { type: 'module' })
 	}
 
 	self.update = (chunk) => {
 		let chunkX = coord[0] * mapCfg.chunkSize;
 		let chunkY = coord[1] * mapCfg.chunkSize;
-		worker.postMessage({
+		chunk.worker.postMessage({
 			id: chunk.meshes[0].uuid,
 			chunkCoord: [chunkX, chunkY],
 			cfg: mapCfg
 		});
 
-		worker.onmessage = (e) => {
+		chunk.worker.onmessage = (e) => {
 			let c = loadedChunks[e.data.id];
 			for (var x = 0; x < mapCfg.chunkSize; x++) {
 				for (var y = 0; y < mapCfg.chunkSize; y++) {

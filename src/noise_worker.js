@@ -8,8 +8,8 @@ onmessage = function (e) {
 		for (let y = 0; y < e.data.cfg.chunkSize; y++) {
 			heightmap[x][y] = getNoise(x + e.data.chunkCoord[0], y + e.data.chunkCoord[1], e.data.cfg);
 		}
-
 	}
+
 	this.postMessage({
 		map: heightmap,
 		id: e.data.id

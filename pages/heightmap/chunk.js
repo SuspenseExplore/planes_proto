@@ -14,7 +14,8 @@ export function buildChunk(coord, parms) {
 		fragmentShader: document.getElementById('fragmentShader').textContent,
 		uniforms: {
 			'tex': { value: texture },
-			'heightScale': { value: parms.heightScale }
+			'heightScale': { value: parms.heightScale },
+			'texelSize': { value: 1 / CHUNK_SEGS }
 		}
 	});
 	let mesh = new THREE.Mesh(geom, material);

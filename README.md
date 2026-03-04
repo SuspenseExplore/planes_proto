@@ -5,9 +5,9 @@ a three.js game prototype
 - ui
 - noise
 - instanced rendering
+- custom shaders
 
 ## things to add
-- custom shaders
 - custom geometry
 - mouse input
 - picking

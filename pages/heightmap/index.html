@@ -20,13 +20,14 @@
 	</script>
 	<script type="x-shader/x-vertex" id="vertexShader">
 		uniform sampler2D tex;
+		uniform float heightScale;
 
 		varying float vColor;
 		varying vec2 vTexCoord;
 		
 		void main() {
 			float h = texture2D(tex, uv).r;
-			vec4 p = vec4(position.xy, h * 512.0, 1.0);
+			vec4 p = vec4(position.xy, h * heightScale, 1.0);
 
 			gl_Position = projectionMatrix * modelViewMatrix * p;
 			vColor = h;

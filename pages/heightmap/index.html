@@ -43,9 +43,15 @@
 		varying vec3 vWorldPos;
 		varying float vColor;
 		varying vec3 vNormal;
+
+		uniform float separation;
+		uniform vec3 grassColor;
+		uniform vec3 rockColor;
 		
 		void main() {
-			vec3 objColor = vec3(0.2, 0.6, 0.2);
+			float s = dot(vNormal, vec3(0.0, 0.0, 1.0));
+			s = pow(s, separation);
+			vec3 objColor = mix(rockColor, grassColor, s);
 
 			vec3 ambientLight = vec3(0.3);
 

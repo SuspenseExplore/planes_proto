@@ -27,7 +27,10 @@ controls.target.set(0, 0, 0);
 controls.update();
 
 let mapParms = {
-	heightScale: 2048,
+	heightScale: 512,
+	separation: 1.5,
+	grassColor: [0.2, 0.6, 0.2],
+	rockColor: [0.5, 0.5, 0.5],
 	octaves: [
 		{ frq: 0.01, amp: 1.0, z: 0 },
 		{ frq: 0.02, amp: 0.5, z: 0 },
@@ -46,10 +49,25 @@ for (let x = -CHUNK_RAD; x <= CHUNK_RAD; x++) {
 }
 
 const gui = new lil.GUI({ width: 600 });
-gui.add(mapParms, 'heightScale', 64, 2048).onChange(function (value) {
+gui.add(mapParms, 'heightScale', 64, 512).onChange(function (value) {
 	for (let c = 0; c < chunks.length; c++) {
 		chunks[c].mesh.material.uniforms.heightScale.value = value;
 		CHUNK.updateChunk(chunks[c], mapParms);
+	}
+});
+gui.addColor(mapParms, 'grassColor').onChange(function (value) {
+	for (let c = 0; c < chunks.length; c++) {
+		chunks[c].mesh.material.uniforms.grassColor.value = value;
+	}
+});
+gui.addColor(mapParms, 'rockColor').onChange(function (value) {
+	for (let c = 0; c < chunks.length; c++) {
+		chunks[c].mesh.material.uniforms.rockColor.value = value;
+	}
+});
+gui.add(mapParms, 'separation', 0, 5).onChange(function (value) {
+	for (let c = 0; c < chunks.length; c++) {
+		chunks[c].mesh.material.uniforms.separation.value = value;
 	}
 });
 for (let o = 0; o < mapParms.octaves.length; o++) {

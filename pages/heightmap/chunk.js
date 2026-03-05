@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 
-const CHUNK_SIZE = 1000;
+const CHUNK_SIZE = 500;
 const CHUNK_SEGS = 128;
 const noise = new ImprovedNoise();
 const geom = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SEGS - 1, CHUNK_SEGS - 1);
@@ -18,7 +18,10 @@ export function buildChunk(coord, parms) {
 			'heightMap': { value: heightMap },
 			'normalMap': { value: normalMap },
 			'heightScale': { value: parms.heightScale },
-			'texelSize': { value: 1 / CHUNK_SEGS }
+			'texelSize': { value: 1 / CHUNK_SEGS },
+			'separation': { value: 1.5 },
+			'grassColor': { value: [0.2, 0.6, 0.2] },
+			'rockColor': { value: [0.5, 0.5, 0.5] }
 		}
 	});
 	let mesh = new THREE.Mesh(geom, material);

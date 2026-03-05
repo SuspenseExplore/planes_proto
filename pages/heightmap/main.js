@@ -36,7 +36,7 @@ let mapParms = {
 }
 
 let chunks = [];
-const CHUNK_RAD = 1;
+const CHUNK_RAD = 2;
 for (let x = -CHUNK_RAD; x <= CHUNK_RAD; x++) {
 	for (let y = -CHUNK_RAD; y <= CHUNK_RAD; y++) {
 		let c = CHUNK.buildChunk([x, y], mapParms);
@@ -46,28 +46,29 @@ for (let x = -CHUNK_RAD; x <= CHUNK_RAD; x++) {
 }
 
 const gui = new lil.GUI({ width: 600 });
-gui.add(mapParms, 'heightScale', 64, 2048).onChange(value => {
-	chunks.forEach(chunk => {
-		chunk.mesh.material.uniforms.heightScale.value = value;
-	});
+gui.add(mapParms, 'heightScale', 64, 2048).onChange(function (value) {
+	for (let c = 0; c < chunks.length; c++) {
+		chunks[c].mesh.material.uniforms.heightScale.value = value;
+		CHUNK.updateChunk(chunks[c], mapParms);
+	}
 });
 for (let o = 0; o < mapParms.octaves.length; o++) {
 	let octave = mapParms.octaves[o];
 	let folder = gui.addFolder('Octave ' + o);
-	folder.add(octave, 'frq', 0.01, 0.2).onChange(value => {
-		chunks.forEach(chunk => {
-			CHUNK.updateChunk(chunk, mapParms);
-		});
+	folder.add(octave, 'frq', 0.01, 0.2).onChange(function (value) {
+		for (let c = 0; c < chunks.length; c++) {
+			CHUNK.updateChunk(chunks[c], mapParms);
+		}
 	});
-	folder.add(octave, 'amp', 0.001, 1).onChange(value => {
-		chunks.forEach(chunk => {
-			CHUNK.updateChunk(chunk, mapParms);
-		});
+	folder.add(octave, 'amp', 0.001, 1).onChange(function (value) {
+		for (let c = 0; c < chunks.length; c++) {
+			CHUNK.updateChunk(chunks[c], mapParms);
+		}
 	});
-	folder.add(octave, 'z', -5, 5, 0.01).onChange(value => {
-		chunks.forEach(chunk => {
-			CHUNK.updateChunk(chunk, mapParms);
-		});
+	folder.add(octave, 'z', -5, 5, 0.01).onChange(function (value) {
+		for (let c = 0; c < chunks.length; c++) {
+			CHUNK.updateChunk(chunks[c], mapParms);
+		}
 	});
 }
 

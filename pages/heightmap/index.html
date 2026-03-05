@@ -19,32 +19,23 @@
 		}
 	</script>
 	<script type="x-shader/x-vertex" id="vertexShader">
-		uniform sampler2D tex;
+		uniform sampler2D heightMap;
+		uniform sampler2D normalMap;
 		uniform float heightScale;
 		uniform float texelSize;
 
 		varying vec3 vWorldPos;
 		varying float vColor;
 		varying vec3 vNormal;
-
-		vec3 calcNormal() {
-			float u = texture2D(tex, uv + vec2(0.0, -texelSize)).x;
-			float r = texture2D(tex, uv + vec2(texelSize, 0.0)).x;
-			float l = texture2D(tex, uv + vec2(-texelSize, 0.0)).x;
-			float d = texture2D(tex, uv + vec2(0.0, texelSize)).x;
-
-			vec3 n = vec3(l - r, u - d, texelSize);
-			return normalize(n);
-		}
 		
 		void main() {
-			float h = texture2D(tex, uv).r;
+			float h = texture2D(heightMap, uv).r;
 			vec4 p = vec4(position.xy, h * heightScale, 1.0);
 
 			gl_Position = projectionMatrix * modelViewMatrix * p;
 			vWorldPos = (modelMatrix * p).xyz;
 			vColor = h;
-			vNormal = calcNormal();
+			vNormal = texture2D(normalMap, uv).rgb;
 		}
 	</script>
 

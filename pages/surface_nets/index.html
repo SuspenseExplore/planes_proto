@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<base href="." />
+	<title>My first three.js app</title>
+	<style>
+		body {
+			margin: 0;
+		}
+	</style>
+	<script type="importmap">
+		{
+			"imports": {
+				"three": 			"https://cdn.jsdelivr.net/npm/three@v0.183.2/build/three.module.js",
+				"three/addons/": 	"https://cdn.jsdelivr.net/npm/three@v0.183.2/examples/jsm/"
+			}
+		}
+	</script>
+	<script type="x-shader/x-vertex" id="vertexShader">
+		uniform sampler2D heightMap;
+		uniform sampler2D normalMap;
+		uniform float heightScale;
+		uniform float texelSize;
+
+		varying vec3 vWorldPos;
+		varying float vColor;
+		varying vec3 vNormal;
+		
+		void main() {
+			float h = texture2D(heightMap, uv).r;
+			vec4 p = vec4(position.xy, h * heightScale, 1.0);
+
+			gl_Position = projectionMatrix * modelViewMatrix * p;
+			vWorldPos = (modelMatrix * p).xyz;
+			vColor = h;
+			vNormal = texture2D(normalMap, uv).rgb;
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentShader">
+		varying vec3 vWorldPos;
+		varying float vColor;
+		varying vec3 vNormal;
+
+		uniform float separation;
+		uniform vec3 grassColor;
+		uniform vec3 rockColor;
+		
+		void main() {
+			float s = dot(vNormal, vec3(0.0, 0.0, 1.0));
+			s = pow(s, separation);
+			vec3 objColor = mix(rockColor, grassColor, s);
+
+			vec3 ambientLight = vec3(0.3);
+
+			vec3 lightColor = vec3(1.0, 1.0, 0.6);
+			vec3 lightDir = normalize(vec3(5.0, 0.0, 10.0));
+			float diff = max(0.0, dot(vNormal, lightDir));
+			vec3 diffColor = lightColor * diff;
+
+			gl_FragColor = vec4(objColor * (ambientLight + diffColor), 1.0);
+		}
+	</script>
+</head>
+
+<body>
+	<script type="module" src="main.js"></script>
+</body>
+
+</html>

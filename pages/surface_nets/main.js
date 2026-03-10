@@ -40,8 +40,8 @@ let mapParms = {
 }
 
 let positions = [];
-let mapSize = 100;
-let frequency = 0.1;
+let mapSize = 200;
+let frequency = 0.15;
 
 var noiseMap = Array.from(Array(mapSize), () => Array.from(Array(mapSize), () => new Array(mapSize)));
 var vertMap = Array.from(Array(mapSize), () => Array.from(Array(mapSize), () => new Array(mapSize)));
@@ -50,7 +50,7 @@ var vertMap = Array.from(Array(mapSize), () => Array.from(Array(mapSize), () => 
 for (let x = 0; x < mapSize; x++) {
 	for (let y = 0; y < mapSize; y++) {
 		for (let z = 0; z < mapSize; z++) {
-			noiseMap[x][y][z] = getNoise(x, y, z - 15);
+			noiseMap[x][y][z] = getNoise(x * frequency, y * frequency, z * frequency - 5);
 		}
 	}
 }
